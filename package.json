@@ -1,5 +1,5 @@
 {
-  "name": "crucible",
+	"name": "crucible",
 	"displayName": "crucible",
 	"description": "Crurible review",
 	"version": "0.0.1",
@@ -10,16 +10,68 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onCommand:crucible.helloWorld"
+		"*"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
+		"configuration":[
+			{
+				"title": "Crucible Review",
+				"id": "crucible",
+				"properties": {
+					"crucible.hostname": {
+						"type": "string",
+						"description": "Hostname of crucible sever"
+					},
+					"crucible.port": {
+						"type": "integer",
+						"description": "Port of crucible sever"
+					},
+					"crucible.token": {
+						"type": "string",
+						"description": "API token for authentication"
+					},
+					"crucible.username": {
+						"type": "string",
+						"description": "Username"
+					},
+					"crucible.viewmode": {
+						"type": "string",
+						"description": "View mode of file",
+						"enum": ["Tree", "Flat"],
+						"default": "tree",
+						"enumDescriptions": ["View as tree directory", "View as list of file"]
+					}
+				}
+			}
+		],
 		"commands": [
 			{
-				"command": "crucible.helloWorld",
-				"title": "Hello World"
+				"command": "crucible.login",
+				"title": "Login to Crucible"
 			}
-		]
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "crucible",
+					"title": "Crucible Review",
+					"icon": "$(account)"
+				}
+			]
+		},
+		"views": {
+		  "crucible": [
+			{
+			  "id": "crucible.outcome",
+			  "name": "Outcome review"
+			},
+			{
+			  "id": "crucible.income",
+			  "name": "Incomming review"
+			}
+		  ]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run package",
@@ -31,6 +83,9 @@
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
+	},
+	"dependencies": {
+		"got": "^12.0.3"
 	},
 	"devDependencies": {
 		"@types/vscode": "^1.66.0",
