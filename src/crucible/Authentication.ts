@@ -21,7 +21,6 @@ export async function login()
     {
         username = await vscode.window.showInputBox({
             prompt: "Enter username",
-            value: "minh.thai"
         });
         if (!username)
         {
@@ -31,7 +30,6 @@ export async function login()
 
     const password = await vscode.window.showInputBox({
         prompt: "Enter password",
-            value: 'cout<<"M0322";',
             password: true,
     });
     if (!password)
