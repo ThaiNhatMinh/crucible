@@ -34,10 +34,7 @@ export function getRaw(...paths: string[]): Promise<Buffer> {
     var config = vscode.workspace.getConfiguration(CONFIGNAME);
     const token = config.get<string>(TOKEN);
     const data = got.get(uri, {
-        headers: {
-            // 'Accept': 'application/json'
-        },
-        searchParams: {FEAUTH: token}
+        searchParams: { FEAUTH: token }
     }).buffer();
 
     return data;

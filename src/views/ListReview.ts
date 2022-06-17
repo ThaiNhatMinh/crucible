@@ -111,7 +111,9 @@ function createTree(path: string, root: TreeEntry) {
 }
 
 export class ListReview implements vscode.TreeDataProvider<Entry> {
-    onDidChangeTreeData?: vscode.Event<void | Entry | Entry[] | null | undefined> | undefined;
+    private _onDidChangeTreeData: vscode.EventEmitter<Entry | undefined | void> = new vscode.EventEmitter<Entry | undefined | void>();
+    readonly onDidChangeTreeData: vscode.Event<Entry | undefined | void> = this._onDidChangeTreeData.event;
+
     apiPath: string;
     reviews: ReviewData[] = [];
     constructor(path: string) {
@@ -121,6 +123,10 @@ export class ListReview implements vscode.TreeDataProvider<Entry> {
 
     async update() {
         this.reviews = await getListReviews(this.apiPath, false);
+    }
+
+    refresh(): void {
+        this._onDidChangeTreeData.fire();
     }
 
     getTreeItem(element: Entry): vscode.TreeItem | Thenable<vscode.TreeItem> {

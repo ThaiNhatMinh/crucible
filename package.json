@@ -10,7 +10,8 @@
 		"Other"
 	],
 	"activationEvents": [
-		"*"
+		"*",
+		"onFileSystem:crucible"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
@@ -54,6 +55,16 @@
 			{
 				"command": "crucible.login",
 				"title": "Login to Crucible"
+			},
+			{
+				"command": "crucible.outcome.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "crucible.income.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
 			}
 		],
 		"viewsContainers": {
@@ -76,6 +87,20 @@
 			  "name": "Incomming review"
 			}
 		  ]
+		},
+		"menus": {
+			"view/title": [
+				{
+					"command": "crucible.outcome.refresh",
+					"when": "view == crucible.outcome",
+					"group": "navigation"
+				},
+				{
+					"command": "crucible.income.refresh",
+					"when": "view == crucible.income",
+					"group": "navigation"
+				}
+			]
 		}
 	},
 	"scripts": {

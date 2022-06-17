@@ -13,23 +13,29 @@ export async function activate(context: vscode.ExtensionContext) {
     await login();
     const fs = new CrucibleFileSystemProvider();
     context.subscriptions.push(vscode.workspace.registerFileSystemProvider(CONFIGNAME, fs, { isCaseSensitive: true, isReadonly: true }));
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with registerCommand
-    // The commandId parameter must match the command field in package.json
-    let disposable = vscode.commands.registerCommand('crucible.login', async () => {
+    context.subscriptions.push(vscode.commands.registerCommand('crucible.login', async () => {
         await login();
+    }));
+
+    const outcomeReview = new ListReview(OPENED_REVIEW);
+    const incomeReview = new ListReview(TO_REVIEW);
+    vscode.commands.registerCommand('crucible.income.refresh', () => {
+        incomeReview.refresh();
     });
+    vscode.commands.registerCommand('crucible.outcome.refresh', () => {
+        outcomeReview.refresh();
+    });
+
     context.subscriptions.push(
         vscode.window.createTreeView("crucible.outcome", {
-            treeDataProvider: new ListReview(OPENED_REVIEW),
+            treeDataProvider: outcomeReview,
         })
     );
     context.subscriptions.push(
         vscode.window.createTreeView("crucible.income", {
-            treeDataProvider: new ListReview(TO_REVIEW),
+            treeDataProvider: incomeReview,
         })
     );
-    context.subscriptions.push(disposable);
 }
 
 // this method is called when your extension is deactivated
