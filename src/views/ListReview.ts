@@ -45,6 +45,7 @@ class RootTree extends vscode.TreeItem {
                 this.iconPath = new vscode.ThemeIcon("file-directory");
             } else {
                 this.iconPath = new vscode.ThemeIcon("file");
+                this.command = { command: 'vscode.open', title: "Open File", arguments: [entry.uri], };
             }
 
         }
@@ -61,7 +62,7 @@ async function createMainEntry(entry: ReviewData): Promise<Entry[]> {
     };
     result.push(description);
 
-    if (mode === 'tree') {
+    if (mode === 'Tree') {
         const root: TreeEntry = {
             name: entry.projectKey,
             childs: [],
@@ -78,7 +79,7 @@ async function createMainEntry(entry: ReviewData): Promise<Entry[]> {
             const e: TreeEntry = {
                 name: item.toPath,
                 childs: [],
-                uri: vscode.Uri.from({scheme: CONFIGNAME, path: item.toPath}),
+                uri: vscode.Uri.from({scheme: CONFIGNAME, path: '/' + item.toPath, query: item.toContentUrl}),
                 root: false,
                 type: vscode.FileType.File
             };

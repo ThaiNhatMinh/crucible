@@ -39,8 +39,13 @@
 						"type": "string",
 						"description": "View mode of file",
 						"enum": ["Tree", "Flat"],
-						"default": "tree",
+						"default": "Tree",
 						"enumDescriptions": ["View as tree directory", "View as list of file"]
+					},
+					"crucible.cachedirectory": {
+						"type": "string",
+						"description": "Cache directory where extension store source code",
+						"default": "~/.crucible"
 					}
 				}
 			}
