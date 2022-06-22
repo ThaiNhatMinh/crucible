@@ -77,3 +77,132 @@ export enum CommitType {
     Deleted = "Deleted",
     Modified = "Modified",
 }
+
+
+export enum ReadStatus {
+    Read = "READ",
+    Unread = "UNREAD",
+}
+
+export interface Reply {
+    metrics:         Metrics;
+    message:         string;
+    draft:           boolean;
+    deleted:         boolean;
+    defectRaised:    boolean;
+    defectApproved:  boolean;
+    readStatus:      ReadStatus;
+    user:            User;
+    createDate:      string;
+    permaId:         ID;
+    replies:         Reply[];
+    messageAsHtml:   string;
+    permId:          ID;
+    parentCommentId: ID;
+}
+
+export interface Reviewers {
+    reviewer: Reviewer[];
+}
+
+export interface Reviewer {
+    userName:                    User;
+    displayName:                 string;
+    avatarUrl:                   string;
+    completed:                   boolean;
+    timeSpent?:                  number;
+    completionStatusChangeDate?: number;
+}
+
+export interface Stat {
+    user:        User;
+    published:   number;
+    drafts:      number;
+    defects:     number;
+    unread:      number;
+    leaveUnread: number;
+    read:        number;
+}
+
+export interface TionDatum {
+    name:        string;
+    displayName: string;
+}
+
+export interface Transitions {
+    transitionData: TionDatum[];
+}
+
+export interface VersionedComments {
+    comments: VersionedCommentsComment[];
+}
+
+export interface VersionedCommentsComment {
+    metrics:        Metrics;
+    message:        string;
+    draft:          boolean;
+    deleted:        boolean;
+    defectRaised:   boolean;
+    defectApproved: boolean;
+    readStatus:     ReadStatus;
+    user:           User;
+    createDate:     number;
+    permaId:        string;
+    replies:        Reply[];
+    messageAsHtml:  string;
+    reviewItemId:   ID;
+    toLineRange:    string;
+    lineRanges:     LineRange[];
+    fromLineRange?: string;
+}
+
+export interface LineRange {
+    revision: string;
+    range:    string;
+}
+
+
+export interface GeneralComments {
+    comments: GeneralCommentsComment[];
+}
+
+export interface GeneralCommentsComment {
+    metrics:         Metrics;
+    message:         string;
+    draft:           boolean;
+    deleted:         boolean;
+    defectRaised:    boolean;
+    defectApproved:  boolean;
+    readStatus:      ReadStatus;
+    user:            User;
+    createDate:      string;
+    permaId:         ID;
+    replies:         Reply[];
+    messageAsHtml:   string;
+    permId:          ID;
+    parentCommentId: Metrics;
+}
+
+export interface Metrics {
+}
+
+export interface ID {
+    id: string;
+}
+
+export interface Reply {
+    metrics:         Metrics;
+    message:         string;
+    draft:           boolean;
+    deleted:         boolean;
+    defectRaised:    boolean;
+    defectApproved:  boolean;
+    readStatus:      ReadStatus;
+    user:            User;
+    createDate:      string;
+    permaId:         ID;
+    replies:         Reply[];
+    messageAsHtml:   string;
+    permId:          ID;
+    parentCommentId: ID;
+}

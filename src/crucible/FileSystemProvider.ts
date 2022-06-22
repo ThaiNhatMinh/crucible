@@ -45,6 +45,9 @@ export class CrucibleFileSystemProvider implements vscode.FileSystemProvider {
         throw new Error('Method not implemented.');
     }
     readFile(uri: vscode.Uri): Uint8Array | Thenable<Uint8Array> {
+        if (!uri.query) {
+            return new Uint8Array;
+        }
         return this.getCache(uri).then(content => content, reason => getRaw(uri.query)).then(content => {
             this.saveCache(uri, content);
             return content;
