@@ -31,6 +31,15 @@ function updateRevision(revisions) {
 
     leftRevision = revisions[0].revision;
     rightRevision = revisions[revisions.length-1].revision;
+
+    while (leftRevisionHtml.firstChild) {
+        leftRevisionHtml.removeChild(leftRevisionHtml.firstChild);
+    }
+
+    while (rightRevisionHtml.firstChild) {
+        rightRevisionHtml.removeChild(rightRevisionHtml.firstChild);
+    }
+
     for (var i = 0; i < revisions.length-1; i++) {
         var option = document.createElement('vscode-option');
         option.innerText = revisions[i].revision;
