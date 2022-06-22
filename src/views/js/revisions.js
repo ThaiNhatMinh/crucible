@@ -2,6 +2,8 @@ const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 var leftRevisionHtml;
 var rightRevisionHtml;
+var left;
+var right;
 var nameHtml;
 var leftRevision;
 var rightRevision;
@@ -22,11 +24,14 @@ window.addEventListener('message', event => {
 
 function updateRevision(revisions) {
     if (revisions.length <= 1) {
-        leftRevisionHtml.style.display = 'none';
-        rightRevisionHtml.style.display = 'none';
+        left.style.display = 'none';
+        right.style.display = 'none';
 
         // TODO: Update label to notice file is added
         return;
+    } else {
+        left.style.display = 'inline';
+        right.style.display = 'inline';
     }
 
     leftRevision = revisions[0].revision;
@@ -55,5 +60,7 @@ function updateRevision(revisions) {
 function main() {
     leftRevisionHtml = document.getElementById("base-changelist");
     rightRevisionHtml = document.getElementById("rev-changelist");
+    left = document.getElementById("left");
+    right = document.getElementById("right");
     nameHtml = document.getElementById("name");
 }

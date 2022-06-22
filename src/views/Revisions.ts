@@ -62,13 +62,13 @@ export class Revisions implements vscode.WebviewViewProvider {
             <body>
                 <div><h1 id="name">${name ?? ""}</h1></div>
                 <div class="container">
-                    <div>
+                    <div id="left">
                         <div style="vertical-align: middle;">
                             <label style="line-height:25px;">Base revision: </label>
                             <vscode-dropdown id="base-changelist"></vscode-dropdown>
                         </div>
                     </div>
-                    <div>
+                    <div id="right">
                         <div style="vertical-align: middle;">
                             <label style="line-height:25px;">Diff againt revision: </label>
                             <vscode-dropdown id="rev-changelist"></vscode-dropdown>
