@@ -6,7 +6,7 @@ import { TO_REVIEW, OPENED_REVIEW } from "./crucible/ApiPath";
 import { ListReview, registerCommand } from "./views/ListReview";
 import { CrucibleFileSystemProvider } from './crucible/FileSystemProvider';
 import { CONFIGNAME } from './crucible/ConfigPath';
-import { FileDecorationProvider } from './crucible/FileDecoration';
+import { CommentDecorationProvider, FileDecorationProvider } from './crucible/FileDecoration';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -40,6 +40,12 @@ export async function activate(context: vscode.ExtensionContext) {
     );
 
     context.subscriptions.push(vscode.window.registerFileDecorationProvider(new FileDecorationProvider()));
+    context.subscriptions.push(vscode.window.registerFileDecorationProvider(new CommentDecorationProvider()));
+
+    vscode.workspace.onDidCloseTextDocument(event => {
+        vscode.window.showInformationMessage(event.fileName);
+    });
+
 }
 
 // this method is called when your extension is deactivated

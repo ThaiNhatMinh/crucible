@@ -3,8 +3,14 @@ import * as vscode from 'vscode';
 export interface FileStat {
     viewed: boolean,
     commitType: string,
-
+	comments: boolean
 }
+
+
+function parseStat(fragment: string) : FileStat {
+	return JSON.parse(fragment) as FileStat;
+}
+
 
 export class FileDecorationProvider implements vscode.FileDecorationProvider {
     onDidChangeFileDecorations?: vscode.Event<vscode.Uri | vscode.Uri[] | undefined> | undefined;
@@ -13,16 +19,12 @@ export class FileDecorationProvider implements vscode.FileDecorationProvider {
             return null;
         }
 
-        const stat = this.parseStat(uri.fragment);
+        const stat = parseStat(uri.fragment);
         return {
             color: this.color(stat),
             badge: this.letter(stat),
             propagate: true
         };
-    }
-
-    parseStat(fragment: string) : FileStat {
-        return JSON.parse(fragment) as FileStat;
     }
 
     color(status: FileStat): vscode.ThemeColor | undefined {
@@ -67,6 +69,25 @@ export class FileDecorationProvider implements vscode.FileDecorationProvider {
 		}
 
 		return '';
+	}
+
+}
+
+export class CommentDecorationProvider implements vscode.FileDecorationProvider {
+	onDidChangeFileDecorations?: vscode.Event<vscode.Uri | vscode.Uri[] | undefined> | undefined;
+	provideFileDecoration(uri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<vscode.FileDecoration> {
+		if (uri.scheme !== "crucible" || !uri.fragment) {
+            return null;
+        }
+
+        const stat = parseStat(uri.fragment);
+		if (stat.comments) {
+			return {
+				propagate: false,
+				tooltip: 'Commented',
+				badge: '💬',
+			};
+		}
 	}
 
 }

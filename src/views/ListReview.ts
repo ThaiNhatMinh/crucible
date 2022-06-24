@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import { CONFIGNAME, VIEWMODE } from '../crucible/ConfigPath';
 import { FileStat } from "../crucible/FileDecoration";
-import { getListReviewers, getListReviews, getReviewItems } from "../crucible/Review";
-import { ReviewData, Reviewer, ReviewItem } from "../crucible/Structure";
+import { getListReviewers, getListReviews, getReview, getReviewItems } from "../crucible/Review";
+import { RevisionSelectorManager } from "../crucible/RevisionSelectorManager";
+import { ReviewData, ReviewDetail, Reviewer, ReviewItem } from "../crucible/Structure";
 import { DescriptionPanel } from "./Description";
 import { Revisions } from "./Revisions";
 
@@ -10,7 +11,7 @@ import { Revisions } from "./Revisions";
 interface TreeEntry
 {
     item?: ReviewItem
-    info?: ReviewData;
+    info?: ReviewDetail;
 	type: vscode.FileType;
     name: string;
     childs: TreeEntry[];
@@ -25,6 +26,7 @@ interface Description
 };
 
 type Entry = ReviewData | TreeEntry | Description;
+const revisionSelectorManager: RevisionSelectorManager = new RevisionSelectorManager();
 
 export function registerCommand(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('crucible.opendescription', (info: ReviewData, items: ReviewItem[], reviewers: Promise<Reviewer[]>) => {
@@ -34,22 +36,31 @@ export function registerCommand(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(Revisions.viewType, revisionsSelector));
 
     context.subscriptions.push(vscode.commands.registerCommand('crucible.diff', (entry: ReviewData, item: ReviewItem) => {
-        revisionsSelector.setData(entry, item);
+        const revisions = revisionSelectorManager.getRevisions(entry, item);
+        revisionsSelector.setData(entry, item, revisions.left, revisions.right);
         var title;
         if (item.commitType === "Added") {
             title = `Added ${item.toPath}`;
         } else if (item.commitType === "Modified") {
-            title = `${item.fromPath} ⟷ ${item.toPath}`
+            title = `${item.fromPath} ⟷ ${item.toPath}`;
         } else if (item.commitType === "Deleted" || item.commitType === "Moved") {
             title = `${item.commitType} ${item.toPath}`;
         } else {
 
         }
         vscode.commands.executeCommand("vscode.diff",
-            vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: item.fromContentUrl }),
-            vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: item.toContentUrl }),
+            vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: revisions.fromContentUrl }),
+            vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: revisions.toContentUrl }),
             title);
     }));
+
+    revisionsSelector.onRevisionsSelected(event => {
+        if (event.side === 'left') {
+            revisionSelectorManager.setLeftRevision(event.id, event.revision);
+        } else {
+            revisionSelectorManager.setRightRevision(event.id, event.revision);
+        }
+    });
 }
 
 class ReviewMainItem extends vscode.TreeItem {
@@ -76,13 +87,21 @@ class RootTree extends vscode.TreeItem {
             this.iconPath = new vscode.ThemeIcon("root-folder");
         } else {
             if (entry.type === vscode.FileType.Directory) {
-                super(vscode.Uri.parse(entry.name), vscode.TreeItemCollapsibleState.Collapsed);
+                super(vscode.Uri.parse(entry.name), vscode.TreeItemCollapsibleState.Expanded);
                 this.iconPath = new vscode.ThemeIcon("file-directory");
             } else {
+                var isComment: boolean = false;
+                entry.info?.versionedComments.comments.forEach(comment => {
+                    // TODO: Check current revision selected
+                    if (comment.reviewItemId.id === entry.item?.permId.id) {
+                        isComment = true;
+                    }
+                });
                 var stat: FileStat = {
                     commitType: entry.item?.commitType!,
                     // TODO: Check if user in participant list
-                    viewed: false
+                    viewed: false,
+                    comments: isComment
                 };
                 const uri = vscode.Uri.from({scheme: CONFIGNAME, path: '/' + entry.item!.toPath, query: entry.item!.toContentUrl, fragment: JSON.stringify(stat)});
                 super(uri, vscode.TreeItemCollapsibleState.None);
@@ -98,11 +117,13 @@ class RootTree extends vscode.TreeItem {
 
 async function createMainEntry(entry: ReviewData): Promise<Entry[]> {
     const mode = vscode.workspace.getConfiguration(CONFIGNAME).get<string>(VIEWMODE);
-    return getReviewItems(entry.permaId.id, true).then(items => {
+    return getReview(entry.permaId.id).then(detail => {
+        const items = detail.reviewItems.reviewItem;
+        revisionSelectorManager.set(entry, items);
         const result: Entry[] = [];
         const description: Description = {
             description: "Description",
-            info: entry,
+            info: detail,
             items: items
         };
         result.push(description);
@@ -114,7 +135,7 @@ async function createMainEntry(entry: ReviewData): Promise<Entry[]> {
                 root: true
             };
             items.forEach(item => {
-                createTree(entry, item, root);
+                createTree(detail, item, root);
             });
             result.push(root);
         } else { // Flat
@@ -123,7 +144,7 @@ async function createMainEntry(entry: ReviewData): Promise<Entry[]> {
                     name: item.toPath,
                     childs: [],
                     item: item,
-                    info: entry,
+                    info: detail,
                     // toUri: vscode.Uri.from({scheme: CONFIGNAME, path: '/' + item.toPath, query: item.toContentUrl}),
                     // fromUri: vscode.Uri.from({scheme: CONFIGNAME, path: '/' + item.fromPath, query: item.fromContentUrl}),
                     root: false,
@@ -137,7 +158,7 @@ async function createMainEntry(entry: ReviewData): Promise<Entry[]> {
 
 }
 
-function createTree(entry: ReviewData, item: ReviewItem, root: TreeEntry) {
+function createTree(entry: ReviewDetail, item: ReviewItem, root: TreeEntry) {
     const paths = item.toPath.split('/');
     let parent = root;
     paths.forEach((p, index) => {

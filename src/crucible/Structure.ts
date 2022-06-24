@@ -5,6 +5,38 @@ export interface ReviewItems {
     reviewItem: ReviewItem[];
 }
 
+export interface ReviewDetail {
+    projectKey:           string;
+    name:                 string;
+    description:          string;
+    author:               User;
+    moderator:            User;
+    creator:              User;
+    permaId:              ID;
+    permaIdHistory:       string[];
+    state:                string;
+    type:                 string;
+    allowReviewersToJoin: boolean;
+    metricsVersion:       number;
+    createDate:           string;
+    dueDate:              string;
+    reviewers:            Reviewers;
+    reviewItems:          ReviewItems;
+    generalComments:      GeneralComments;
+    versionedComments:    VersionedComments;
+    transitions:          Transitions;
+    actions:              Actions;
+    stats:                Stat[];
+}
+export interface Actions {
+    actionData: TionDatum[];
+}
+
+export interface TionDatum {
+    name:        string;
+    displayName: string;
+}
+
 export interface ReviewData {
     projectKey:           string;
     name:                 string;

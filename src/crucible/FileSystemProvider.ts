@@ -3,6 +3,7 @@ import { homedir } from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { CACHE_LOCATION, CONFIGNAME } from './ConfigPath';
+import { log } from './Log';
 import { getRaw } from './Rest';
 
 /**
@@ -30,11 +31,13 @@ export class CrucibleFileSystemProvider implements vscode.FileSystemProvider {
         };
     }
     stat(uri: vscode.Uri): vscode.FileStat | Thenable<vscode.FileStat> {
+        // if ctime and mtime is the same with last time read file, vscode return error
+        const now = new Date().getTime();
         const a: vscode.FileStat = {
             type: vscode.FileType.File,
-            ctime: 0,
-            mtime: 0,
-            size: 1,
+            ctime: now,
+            mtime: now,
+            size: 0,
         };
         return a;
     }
@@ -64,11 +67,13 @@ export class CrucibleFileSystemProvider implements vscode.FileSystemProvider {
     }
 
     private getCache(uri: vscode.Uri): Thenable<Uint8Array> {
+        log("[FS][CACHE]", "Read cache:", uri);
         const localUri = vscode.Uri.file(path.join(this.cacheLocation!, uri.query));
         return this.fs.readFile(localUri);
     }
 
     private saveCache(uri: vscode.Uri, content: Uint8Array) {
+        log("[FS][CACHE]", "Save cache:", uri);
         const localUri = vscode.Uri.parse(path.resolve(this.cacheLocation!, uri.query.substring(1)));
         this.fs.writeFile(localUri, content);
     }

@@ -7,9 +7,13 @@ export class Revisions implements vscode.WebviewViewProvider {
     public static readonly viewType = "crucible.revisions";
     private extensionUri: vscode.Uri;
     private view?: vscode.Webview;
-
+	private _onRevisionsSelected = new vscode.EventEmitter<{id: string, side: string, revision: string}>();
     constructor(extensionsUri: vscode.Uri) {
         this.extensionUri = extensionsUri;
+    }
+
+    get onRevisionsSelected() {
+        return this._onRevisionsSelected.event;
     }
 
     resolveWebviewView(webviewView: vscode.WebviewView, context: vscode.WebviewViewResolveContext<{name:string, item: ReviewItem}>, token: vscode.CancellationToken): void | Thenable<void> {
@@ -26,9 +30,9 @@ export class Revisions implements vscode.WebviewViewProvider {
         this.view = webviewView.webview;
     }
 
-    public setData(info: ReviewData, item: ReviewItem) {
+    public setData(info: ReviewData, item: ReviewItem, left?: string, right?:string) {
         if (this.view) {
-            this.view.postMessage({msg: "revisions", name: info.permaId.id, revisions: item.expandedRevisions});
+            this.view.postMessage({msg: "revisions", name: info.permaId.id, revisions: item.expandedRevisions, left: left, right: right});
         }
         // this._panel.dispose();
     }
@@ -63,15 +67,13 @@ export class Revisions implements vscode.WebviewViewProvider {
                 <div><h1 id="name">${name ?? ""}</h1></div>
                 <div class="container">
                     <div id="left">
-                        <div style="vertical-align: middle;">
+                        <div style="vertical-align: middle;" id="leftchild">
                             <label style="line-height:25px;">Base revision: </label>
-                            <vscode-dropdown id="base-changelist"></vscode-dropdown>
                         </div>
                     </div>
                     <div id="right">
-                        <div style="vertical-align: middle;">
+                        <div style="vertical-align: middle;" id="rightchild">
                             <label style="line-height:25px;">Diff againt revision: </label>
-                            <vscode-dropdown id="rev-changelist"></vscode-dropdown>
                         </div>
                     </div>
                 </div>
@@ -80,6 +82,15 @@ export class Revisions implements vscode.WebviewViewProvider {
     }
 
     private setWebviewMessageListener(webviewView: vscode.WebviewView) {
-        webviewView.webview.onDidReceiveMessage((message) => {});
+        webviewView.webview.onDidReceiveMessage((message) => {
+            switch (message.command) {
+                case 'leftSelect':
+                    this._onRevisionsSelected.fire({id: message.id, side: 'left', revision: message.revision});
+                    break;
+                case 'rightSelect':
+                    this._onRevisionsSelected.fire({id: message.id, side: 'right', revision: message.revision});
+                    break;
+            }
+        });
     }
 }
