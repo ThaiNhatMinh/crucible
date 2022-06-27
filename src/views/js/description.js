@@ -24,7 +24,7 @@ function updateReviewer(reviewers, percents) {
             status = "Completed";
         } else {
             if (element.userName in percents) {
-                status = `${int(percents[element.userName])}% reviewed`;
+                status = `${Math.floor(percents[element.userName])}% reviewed`;
             } else {
                 status = "0% reviewed";
             }

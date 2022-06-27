@@ -61,7 +61,6 @@ export class DescriptionPanel {
                     <div class="grid-item">${this.getTags()}</div>
                     <div class="grid-item">${this.getAuthor()}</div>
                     <div class="grid-item">${this.getButtons()}</div>
-                    <div class="grid-item">${this.getChangelistSelect()}</div>
                     <div class="grid-item"><vscode-divider></vscode-divider></div>
                     <div class="grid-item">
                         <vscode-data-grid id="reviewer-grid" aria-label="Basic"></vscode-data-grid>
@@ -187,25 +186,4 @@ export class DescriptionPanel {
         return result;
     }
 
-    private getChangelistSelect() {
-        // let base: string[] = [];
-        // this.items.forEach(item => {
-        //     item.expandedRevisions.forEach(revision => {
-        //         if (!base.find(rev => rev ===revision.revision)) {
-        //             base.push(revision.revision);
-        //         }
-        //     });
-        // });
-        // function options() {
-        //     let result = "";
-        //     base.forEach(el => result += `<vscode-option>${el}</vscode-option>`);
-        //     return result;
-        // }
-        // return `<div style="vertical-align: middle;">
-        //     <label style="line-height:25px;">Base revision: </label>
-        //     <vscode-dropdown id="base-changelist">${options()}</vscode-dropdown>
-        //     <label>Revision: </label>
-        //     <vscode-dropdown id="rev-changelist"></vscode-dropdown>
-        // </div>`;
-    }
 }
