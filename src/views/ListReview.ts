@@ -37,7 +37,6 @@ export function registerCommand(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(vscode.commands.registerCommand('crucible.diff', (entry: ReviewData, item: ReviewItem) => {
         const revisions = revisionSelectorManager.getRevisions(entry, item);
-        revisionsSelector.setData(entry, item, revisions.left, revisions.right);
         var title;
         if (item.commitType === "Added") {
             title = `Added ${item.toPath}`;
@@ -46,12 +45,17 @@ export function registerCommand(context: vscode.ExtensionContext) {
         } else if (item.commitType === "Deleted" || item.commitType === "Moved") {
             title = `${item.commitType} ${item.toPath}`;
         } else {
-
+            
         }
         vscode.commands.executeCommand("vscode.diff",
-            vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: revisions.fromContentUrl }),
-            vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: revisions.toContentUrl }),
-            title);
+        vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: revisions.fromContentUrl }),
+        vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: revisions.toContentUrl }),
+        title).then(() => {
+            vscode.commands.executeCommand('setContext', 'crucible.diffopen', true).then(() => {
+                revisionsSelector.setData(entry, item, revisions.left, revisions.right);
+            });
+
+        });
     }));
 
     revisionsSelector.onRevisionsSelected(event => {

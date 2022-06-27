@@ -42,10 +42,6 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.window.registerFileDecorationProvider(new FileDecorationProvider()));
     context.subscriptions.push(vscode.window.registerFileDecorationProvider(new CommentDecorationProvider()));
 
-    vscode.workspace.onDidCloseTextDocument(event => {
-        vscode.window.showInformationMessage(event.fileName);
-    });
-
 }
 
 // this method is called when your extension is deactivated

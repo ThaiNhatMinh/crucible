@@ -79,7 +79,7 @@
 			{
 				"command": "crucible.diff",
 				"title": "Diff",
-				"enablement": "view === crucible.outcome || view === crucible.income || view == crucible.revisions"
+				"enablement": "view == crucible.outcome || view == crucible.income || view == crucible.revisions"
 			}
 		],
 		"viewsContainers": {
@@ -104,8 +104,8 @@
 				{
 					"type": "webview",
 					"id": "crucible.revisions",
-					"name": "Revisions selected"
-					
+					"name": "Revisions selected",
+					"when": "crucible.diffopen"
 				}
 			]
 		},

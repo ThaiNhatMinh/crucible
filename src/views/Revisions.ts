@@ -7,9 +7,22 @@ export class Revisions implements vscode.WebviewViewProvider {
     public static readonly viewType = "crucible.revisions";
     private extensionUri: vscode.Uri;
     private view?: vscode.Webview;
+    private viewview?: vscode.WebviewView;
 	private _onRevisionsSelected = new vscode.EventEmitter<{id: string, side: string, revision: string}>();
+    private isClose: boolean = false;
+
     constructor(extensionsUri: vscode.Uri) {
         this.extensionUri = extensionsUri;
+
+        vscode.workspace.onDidCloseTextDocument(event => {
+            if (event.uri.scheme !== 'crucible') {
+                return;
+            }
+            if (!this.isClose) {
+                vscode.commands.executeCommand('setContext', 'crucible.diffopen', false);
+                this.isClose = true;
+            }
+        });
     }
 
     get onRevisionsSelected() {
@@ -28,13 +41,16 @@ export class Revisions implements vscode.WebviewViewProvider {
             webviewView.webview.postMessage({ msg: "revisions", revisions: context.state?.item});
         }
         this.view = webviewView.webview;
+        this.viewview = webviewView;
+        webviewView.onDidDispose(() => {
+        });
+        this.isClose = false;
     }
 
     public setData(info: ReviewData, item: ReviewItem, left?: string, right?:string) {
-        if (this.view) {
+        if (this.view && !this.isClose) {
             this.view.postMessage({msg: "revisions", name: info.permaId.id, revisions: item.expandedRevisions, left: left, right: right});
         }
-        // this._panel.dispose();
     }
 
     private getWebviewContent(webview: vscode.Webview, name?:string): string {
