@@ -209,7 +209,7 @@ export interface GeneralCommentsComment {
     user:            User;
     createDate:      string;
     permaId:         ID;
-    replies:         Reply[];
+    replies:         GeneralCommentsComment[];
     messageAsHtml:   string;
     permId:          ID;
     parentCommentId: Metrics;
@@ -220,21 +220,4 @@ export interface Metrics {
 
 export interface ID {
     id: string;
-}
-
-export interface Reply {
-    metrics:         Metrics;
-    message:         string;
-    draft:           boolean;
-    deleted:         boolean;
-    defectRaised:    boolean;
-    defectApproved:  boolean;
-    readStatus:      ReadStatus;
-    user:            User;
-    createDate:      string;
-    permaId:         ID;
-    replies:         Reply[];
-    messageAsHtml:   string;
-    permId:          ID;
-    parentCommentId: ID;
 }

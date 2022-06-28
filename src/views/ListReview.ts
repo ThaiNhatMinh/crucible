@@ -21,7 +21,7 @@ interface TreeEntry
 interface Description
 {
     description: string;
-    info: ReviewData;
+    info: ReviewDetail;
     items: ReviewItem[];
 };
 
@@ -29,7 +29,7 @@ type Entry = ReviewData | TreeEntry | Description;
 const revisionSelectorManager: RevisionSelectorManager = new RevisionSelectorManager();
 
 export function registerCommand(context: vscode.ExtensionContext) {
-    context.subscriptions.push(vscode.commands.registerCommand('crucible.opendescription', (info: ReviewData, items: ReviewItem[], reviewers: Promise<Reviewer[]>) => {
+    context.subscriptions.push(vscode.commands.registerCommand('crucible.opendescription', (info: ReviewDetail, items: ReviewItem[], reviewers: Promise<Reviewer[]>) => {
         context.subscriptions.push(new DescriptionPanel(context.extensionUri, info, items, reviewers));
     }));
     const revisionsSelector = new Revisions(context.extensionUri);

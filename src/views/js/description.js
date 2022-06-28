@@ -1,5 +1,6 @@
 const vscode = acquireVsCodeApi();
 let reviewerGrid;
+let replyform;
 
 window.addEventListener("load", main);
 // Handle the message inside the webview
@@ -77,4 +78,24 @@ function main() {
     if (recoverReviewButton) {
         recoverReviewButton.addEventListener("click", () => recoverReview());
     }
+
+    replyform = document.getElementById("replyform");
+    const cancelBtn = document.getElementById("cancelBtn");
+    cancelBtn.addEventListener("click", () => {
+        replyform.style.display = "none";
+    });
+
+    const replys = document.querySelectorAll(`[id^="reply_"]`);
+    replys.forEach(reply => {
+        const id = reply.id.split('_')[1];
+        const formparent = document.getElementById("generalreplyFormDiv_" + id);
+        reply.addEventListener("click", () => aaa(formparent));
+    });
+}
+
+function aaa(formparent) {
+    formparent.appendChild(replyform);
+    replyform.style.display = "inline";
+    formparent.style.display = "block";
+    console.log(formparent);
 }
