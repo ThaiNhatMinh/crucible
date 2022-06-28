@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { CONFIGNAME, HOSTNAME, PORT, TOKEN } from './ConfigPath';
 import got from 'got';
+import { REVIEW_INFORMATION, TRANSITION, Transition } from './ApiPath';
+import { ReviewData } from './Structure';
 
 export function url(...paths: string[]): string
 {
@@ -38,4 +40,16 @@ export function getRaw(...paths: string[]): Promise<Buffer> {
     }).buffer();
 
     return data;
+}
+
+export function transition(id: string, ttr: Transition, ignoreWarnings: boolean): Promise<ReviewData> {
+    var uri = url(REVIEW_INFORMATION, id, TRANSITION);
+    var config = vscode.workspace.getConfiguration(CONFIGNAME);
+    const token = config.get<string>(TOKEN);
+    return got.post(uri, {
+        headers: {
+            'Accept': 'application/json'
+        },
+        searchParams: {FEAUTH: token, action: ttr, ignoreWarnings: ignoreWarnings}
+    }).json<ReviewData>();
 }

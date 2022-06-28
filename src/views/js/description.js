@@ -41,23 +41,22 @@ function updateReviewer(reviewers, percents) {
 }
 
 function closeReview() {
-    console.log("closeReviewButton");
+    vscode.postMessage({command: 'transition', transition: "close"});
 }
 
 
 function abandonReview() {
-    console.log("abandonReviewButton");
-
+    vscode.postMessage({command: 'transition', transition: "abandon"});
 }
 
 
 function reopenReview() {
-    console.log("reopenReviewButton");
+    vscode.postMessage({command: 'transition', transition: "reopen"});
 
 }
 
 function recoverReview() {
-    console.log("recoverReviewButton");
+    vscode.postMessage({command: 'transition', transition: "recover"});
 }
 
 function main() {

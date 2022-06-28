@@ -1,6 +1,8 @@
 import { create } from "domain";
 import { close } from "fs";
 import * as vscode from "vscode";
+import { Transition } from "../crucible/ApiPath";
+import { transition } from "../crucible/Rest";
 import { ReviewData, Reviewer, ReviewItem } from "../crucible/Structure";
 import { getUri } from "./utilities";
 
@@ -8,7 +10,7 @@ export class DescriptionPanel {
     private readonly _panel: vscode.WebviewPanel;
     private _disposables: vscode.Disposable[] = [];
     private extensionUri: vscode.Uri;
-    private reviewers: Promise<Reviewer[]>;
+    private reviewers: Reviewer[] = [];
     private info: ReviewData;
     private items: ReviewItem[];
     constructor(extensionsUri: vscode.Uri, info: ReviewData, items: ReviewItem[], reviewers: Promise<Reviewer[]>) {
@@ -16,13 +18,26 @@ export class DescriptionPanel {
             enableScripts: true
         });
         this.info = info;
-        this.reviewers = reviewers;
         this.items = items;
         this._panel.onDidDispose(this.dispose, null, this._disposables);
         this.extensionUri = extensionsUri;
         this._panel.webview.html = this._getWebviewContent();
-        this.reviewers.then(reviewers => {
+        reviewers.then(reviewers => {
+            this.reviewers = reviewers;
             this._panel.webview.postMessage({msg: "reviewers", data: reviewers, percents: this.calculatePercent()});
+        });
+
+        this._panel.webview.onDidReceiveMessage((message) => {
+            switch (message.command) {
+                case 'transition':
+                    const trans: keyof typeof Transition = message.transition;
+                    transition(info.permaId.id, Transition[trans], false).then(res => {
+                        this.info = res;
+                        this._panel.webview.html = this._getWebviewContent();
+                        this._panel.webview.postMessage({msg: "reviewers", data: this.reviewers, percents: this.calculatePercent()});
+                    });
+                    break;
+            }
         });
     }
 
