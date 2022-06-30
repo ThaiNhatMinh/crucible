@@ -1,6 +1,8 @@
 const vscode = acquireVsCodeApi();
 let reviewerGrid;
 let replyform;
+let commentplaceholder;
+let generalcommentcontainer;
 
 window.addEventListener("load", main);
 // Handle the message inside the webview
@@ -32,6 +34,7 @@ function updateReviewer(reviewers, percents) {
         }
         data.push({"col1": element.displayName, "col2": status, "col3": timeSpend});
     }
+    reviewerGrid = document.getElementById("reviewer-grid");
     reviewerGrid.rowsData = data;
     reviewerGrid.columnDefinitions = [
         { columnDataKey: "col1", title: "Name"},
@@ -78,24 +81,53 @@ function main() {
     if (recoverReviewButton) {
         recoverReviewButton.addEventListener("click", () => recoverReview());
     }
+    generalcommentcontainer = document.getElementById('general-comments-container');
+    commentplaceholder = document.getElementById("commentplaceholder");
+    commentplaceholder.addEventListener('click', () => {
+        commentplaceholder.style.display = "none";
+        displayCommentForm(undefined, generalcommentcontainer);
+    });
 
     replyform = document.getElementById("replyform");
     const cancelBtn = document.getElementById("cancelBtn");
     cancelBtn.addEventListener("click", () => {
         replyform.style.display = "none";
+        if (commentplaceholder.style.display === "none") {
+            commentplaceholder.style.display = "inline";
+        }
+    });
+
+    document.getElementById("submitComment").addEventListener("click", () => {
+        let comment = document.getElementById("inputComment").value;
+        console.log(comment);
+        if (comment.length === 0) {
+            vscode.postMessage({command: 'msg', message: "Comment is empty!", type: "error"});
+        } else {
+            vscode.postMessage({command: 'generalcomment', message: comment, isdraft: false, parentid: replyform.getAttribute("parentid")});
+        }
+    });
+
+    document.getElementById("saveDraftComment").addEventListener("click", () => {
+        let comment = document.getElementById("inputComment").value;
+        console.log(comment);
+        if (comment.length === 0) {
+            vscode.postMessage({command: 'msg', message: "Comment is empty!", type: "error"});
+        } else {
+            vscode.postMessage({command: 'generalcomment', message: comment, isdraft: true, parentid: replyform.getAttribute("parentid")});
+        }
     });
 
     const replys = document.querySelectorAll(`[id^="reply_"]`);
     replys.forEach(reply => {
         const id = reply.id.split('_')[1];
         const formparent = document.getElementById("generalreplyFormDiv_" + id);
-        reply.addEventListener("click", () => aaa(formparent));
+        reply.addEventListener("click", () => displayCommentForm(id, formparent));
     });
 }
 
-function aaa(formparent) {
+function displayCommentForm(parentcommentid, formparent) {
     formparent.appendChild(replyform);
     replyform.style.display = "inline";
+    replyform.setAttribute("parentid", parentcommentid);
     formparent.style.display = "block";
-    console.log(formparent);
 }

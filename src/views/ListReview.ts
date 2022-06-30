@@ -29,8 +29,8 @@ type Entry = ReviewData | TreeEntry | Description;
 const revisionSelectorManager: RevisionSelectorManager = new RevisionSelectorManager();
 
 export function registerCommand(context: vscode.ExtensionContext) {
-    context.subscriptions.push(vscode.commands.registerCommand('crucible.opendescription', (info: ReviewDetail, items: ReviewItem[], reviewers: Promise<Reviewer[]>) => {
-        context.subscriptions.push(new DescriptionPanel(context.extensionUri, info, items, reviewers));
+    context.subscriptions.push(vscode.commands.registerCommand('crucible.opendescription', (info: ReviewDetail) => {
+        context.subscriptions.push(new DescriptionPanel(context.extensionUri, info));
     }));
     const revisionsSelector = new Revisions(context.extensionUri);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(Revisions.viewType, revisionsSelector));
@@ -209,7 +209,7 @@ export class ListReview implements vscode.TreeDataProvider<Entry> {
         } else if ('description' in element) {
             const description =  new vscode.TreeItem(element.description);
             description.iconPath = new vscode.ThemeIcon('info');
-            description.command = {command: "crucible.opendescription", title: element.description, arguments: [element.info, element.items, getListReviewers(element.info.permaId.id)]};
+            description.command = {command: "crucible.opendescription", title: element.description, arguments: [element.info]};
             return description;
         } else {
             throw new Error(`Unknow ${element}`);

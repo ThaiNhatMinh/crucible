@@ -575,3 +575,460 @@ form.aui.comment .field-group {
 #content-resizable .commentForm button {
     min-width: 60px;
 }
+
+/** wiki styles */
+.markup a.jira-hover-trigger,
+.markup span.crulinkspan a {
+    display:inline;
+}
+
+.markup .table-wrap {
+    margin: 5px;
+}
+
+#frxs .markup table {
+    width: auto;
+}
+
+.markup table.confluenceTable {
+    border-collapse: collapse;
+}
+
+.markup td {
+    background-color: #FFFFFF;
+}
+
+.markup td.confluenceTd {
+    border: 1px solid #ccc;
+    padding: 3px 4px 3px 4px;
+}
+
+.markup th.confluenceTh {
+    border: 1px solid #ccc;
+    padding: 3px 4px 3px 4px;
+    background: #f5f5f5;
+    text-align: center;
+}
+
+.markup .wiki-textarea,
+.markup .wiki-textfield {
+    width: 100%;
+}
+
+.markup .preformatted {
+    border: 1px dashed;
+    font-size: 11px;
+    font-family: Courier;
+    margin: 10px;
+    line-height: 13px;
+}
+
+.markup .preformattedHeader {
+    /* background-color: #f5f5f5; */
+    border-bottom: 1px dashed;
+    padding: 3px;
+    text-align: center;
+}
+
+.markup .preformattedContent {
+    /* background-color: #f5f5f5; */
+    padding: 3px;
+    overflow: auto;
+}
+
+.markup .panel {
+    border: 1px dashed;
+    margin: 10px;
+    margin-top: 0;
+}
+
+.markup .panelHeader {
+    /* background-color: #f5f5f5; */
+    border-bottom: 1px dashed;
+    padding: 3px;
+    text-align: center;
+}
+
+.markup .panelContent {
+    /* background-color: #f5f5f5; */
+    padding: 5px;
+}
+
+.markup .code {
+    border: 1px #ccc solid;
+    font-size: 12px;
+    border-radius: 3px;
+    font-family: Courier, monospace;
+    margin: 10px 0;
+    line-height: 13px;
+    word-wrap: normal;
+}
+
+.markup .codeHeader {
+    /* background-color: #f5f5f5; */
+    border-bottom: 1px dashed;
+    text-align: center;
+}
+
+.markup .codeContent {
+    text-align: left;
+    /* background-color: #f5f5f5; */
+    padding: 5px;
+    overflow: auto;
+}
+
+.markup .code-keyword {
+    color: #000091;
+    background-color: inherit;
+}
+
+.markup .code-object {
+    color: #910091;
+    background-color: inherit;
+}
+
+.markup .code-quote {
+    color: #009100;
+    background-color: inherit;
+}
+
+.markup .code-comment {
+    color: #808080;
+    background-color: inherit;
+}
+
+.markup .code-xml .code-keyword {
+    color: inherit;
+    font-weight: bold;
+}
+
+.markup .code-tag {
+    color: #000091;
+    background-color: inherit;
+}
+
+.markup .linkerror {
+    background-color: #fcc;
+}
+
+.markup .helpcontent {
+    padding: 4px 4px 20px 4px;
+    background-color: #ffffff;
+}
+
+.markup .gridHover {
+    background-color: #f9f9f9;
+}
+
+.markup .navmenu {
+    border: 1px solid #ccc;
+}
+
+/* side menu highlighting (e.g. space content screen) */
+.markup .optionPadded {
+    padding: 2px;
+}
+
+.markup .optionSelected {
+    background-color: #ffffcc;
+    padding: 2px;
+    border: 1px solid #ddd;
+    margin: -1px;
+}
+
+.markup .optionSelected a {
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+}
+
+.markup .menuitems {
+    padding: 4px 4px 20px 4px;
+    /* background-color: #f5f5f5; */
+}
+
+.markup .pagetitle {
+    font-size: 22px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    color: #003366;
+}
+
+.markup .image-wrap img {
+    max-width: 100%;
+}
+
+.markup .wiki-edit {
+    width: 90%;
+}
+
+.markup .wiki-edit-content.previewClass {
+    /* background-color: #E8F1FF; */
+    border: 1px solid gray;
+    width: 100%;
+}
+
+.markup .wiki-edit-content.previewClass .content-inner {
+    padding: 0 10px;
+}
+
+.markup .wiki-edit-content.previewClass textarea {
+    display: none;
+}
+
+.markup .wiki-edit-content.previewClass p {
+    margin-bottom: 0;
+    padding-bottom: 1em;
+}
+
+.markup .selectedPreview {
+    border: 1px inset #bbbbbb;
+    padding: 0;
+    background-color: #eeeeee;
+}
+
+.markup .unselectedPreview {
+    border: 0;
+    padding: 1px;
+}
+
+.markup .wiki-renderer {
+    width: 22px;
+    height: 20px;
+    border: none;
+    background-color: transparent;
+    display: block;
+    float: left;
+    text-indent: -9999px;
+    cursor: pointer;
+    margin-right: 3px;
+
+}
+
+.markup .wiki-renderer:focus {
+    outline: none;
+}
+
+.markup .wiki-renderer:-moz-focus-inner {
+    border: 0;
+}
+
+.markup .wiki-renderer.fullscreen {
+    background: url("../images/icons/fullscreen.gif") center no-repeat;
+}
+
+.markup .wiki-renderer.loading {
+    background: url("../images/icons/wait.gif") center no-repeat;
+}
+
+.markup .wiki-renderer.fullscreen.selected {
+    background-color: #EEEEEE;
+    border: 1px inset #BBBBBB;
+    background-position: 0 center;
+}
+
+.markup .field-tools {
+    float: right;
+    width: 8%;
+    font-size: 10px;
+}
+
+.markup .emoticon {
+	vertical-align: middle;
+}
+
+/* undoing reset */
+.markup blockquote {
+    padding: 4px 10px;
+    border-left: 2px solid #E8F1FF;
+}
+
+.markup ins {
+    text-decoration: underline;
+}
+
+.markup sub {
+    font-size: 0.75em;
+    position: relative;
+    top: 2px;
+}
+
+.markup sup {
+    font-size: 0.75em;
+    position: relative;
+    top: -2px;
+}
+
+.markup em {
+    font-style: italic;
+}
+
+.markup h1 {
+	font-size: 2em;
+	margin: 0.67em 0;
+}
+.markup h2 {
+	font-size: 1.5em;
+	margin: 0.83em 0;
+}
+.markup h3 {
+	font-size: 1.17em;
+	margin: 1em 0;
+}
+.markup h4 {
+	font-size: 1em;
+	margin: 1.33em 0;
+}
+.markup h5 {
+	font-size: 0.83em;
+	margin: 1.67em 0;
+}
+.markup h6 {
+	font-size: 0.67em;
+	margin: 2.33em 0;
+}
+
+/* review reset */
+#content-column .content-fixed .markup h2, .people-pane .markup h2 {
+	background: none;
+	color: inherit;
+	font-size: 1.5em;
+	height: auto;
+	margin-left: 0;
+	padding: 0;
+}
+
+/* edit reset */
+.container-tabbed .box .markup h3 {
+	font-size: 1.17em;
+}
+.container-tabbed .box .markup h4 {
+	font-size: 1em;
+}
+
+/* stream reset */
+div.stream div.markup em {
+    font-style: italic;
+}
+
+div.stream div.markup h4 {
+	display: block;
+	font-weight: bold;
+	background: none;
+	float: none;
+	padding: 0;
+}
+
+.stream .markup tt {
+    font-size: 1.05em;
+}
+
+/* popup reset */
+.hoverpopup .trundle .markup h5 {
+	color:inherit;
+}
+
+/* dialog reset */
+.dialog .markup h2 {
+	background: none;
+	color: inherit;
+	font-size: 1.5em;
+	height: auto;
+	line-height: auto;
+	margin: 0.83em 0;
+	overflow: inherit;
+	padding: 0;
+}
+
+/* list reset reset */
+div .markup ol {
+    display: block;
+    margin: 1em auto;
+    padding: auto;
+    padding-left: 40px;
+}
+
+div .markup ol li {
+    list-style-type: decimal;
+}
+
+div .markup ul {
+    display: block;
+    margin: 1em auto;
+    padding: auto;
+    padding-left: 40px;
+}
+
+div .markup ol ol,
+    div .markup ol ul,
+    div .markup ul ul,
+    div .markup ul ol {
+    margin: auto;
+}
+
+div .markup li,
+    div .markup ol ul li {
+    display: list-item;
+    margin: auto;
+    padding: auto;
+    list-style-type: disc;
+}
+
+div .markup ul ul li,
+    div .markup ul[type=circle] li {
+    list-style-type: circle;
+}
+
+div .markup ul ul ul li,
+    div .markup ul[type=square] li {
+    list-style-type: square;
+}
+
+/* drop-down reset reset */
+div.aui-dd-parent .markup ol {
+	display: block;
+	margin: 1em auto;
+	padding: auto;
+	padding-left: 40px;
+}
+
+div.aui-dd-parent .markup ol li {
+	list-style-type: decimal;
+}
+
+div.aui-dd-parent .markup ul {
+	display: block;
+	margin: 1em auto;
+	padding: auto;
+	padding-left: 40px;
+}
+
+div.aui-dd-parent .markup ol ol,
+div.aui-dd-parent .markup ol ul,
+div.aui-dd-parent .markup ul ul,
+div.aui-dd-parent .markup ul ol {
+	margin: auto;
+}
+
+div.aui-dd-parent .markup li,
+div.aui-dd-parent .markup ol ul li {
+	display: list-item;
+	margin: auto;
+	padding: auto;
+	list-style-type: disc;
+}
+
+div.aui-dd-parent .markup ul ul li,
+div.aui-dd-parent .markup ul[type=circle] li {
+	list-style-type: circle;
+}
+
+div.aui-dd-parent .markup ul ul ul li,
+div.aui-dd-parent .markup ul[type=square] li {
+	list-style-type: square;
+}
+
+.aui-dropdown .markup ol {
+	border-bottom: none;
+	padding: auto;
+}

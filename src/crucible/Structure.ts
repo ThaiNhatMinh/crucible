@@ -199,7 +199,7 @@ export interface GeneralComments {
 }
 
 export interface GeneralCommentsComment {
-    metrics:         Metrics;
+    metrics:         string;
     message:         string;
     draft:           boolean;
     deleted:         boolean;
@@ -212,7 +212,7 @@ export interface GeneralCommentsComment {
     replies:         GeneralCommentsComment[];
     messageAsHtml:   string;
     permId:          ID;
-    parentCommentId: Metrics;
+    parentCommentId: ID;
 }
 
 export interface Metrics {

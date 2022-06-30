@@ -1,6 +1,8 @@
 export const DETAIL = "details";
 export const REVIEW_ITEMS = "reviewitems";
 export const REVIEWERS = "reviewers";
+export const COMMENTS = "comments";
+export const GENERAL_COMMENTS = "comments/general";
 export const TRANSITION = "transition";
 export const LOGIN = "rest-service-fecru/auth/login";
 export const USER_INFO = "rest-service/users-v1";

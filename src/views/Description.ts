@@ -1,9 +1,8 @@
-import { create } from "domain";
-import { close } from "fs";
 import * as vscode from "vscode";
-import { Transition } from "../crucible/ApiPath";
-import { transition } from "../crucible/Rest";
-import { GeneralCommentsComment, ReviewData, ReviewDetail, Reviewer, ReviewItem } from "../crucible/Structure";
+import { REVIEWERS, REVIEW_INFORMATION, REVIEW_ITEMS, Transition } from "../crucible/ApiPath";
+import { CONFIGNAME, USERNAME } from "../crucible/ConfigPath";
+import { get, postComment, transition, avatarUrl, getGeneralComment } from "../crucible/Rest";
+import { GeneralCommentsComment, ReviewData, ReviewDetail, Reviewer, Reviewers, ReviewItem, ReviewItems } from "../crucible/Structure";
 import { getUri } from "./utilities";
 
 export class DescriptionPanel {
@@ -12,22 +11,30 @@ export class DescriptionPanel {
     private extensionUri: vscode.Uri;
     private reviewers: Reviewer[] = [];
     private info: ReviewData;
-    private items: ReviewItem[];
+    private items: ReviewItem[] = [];
     private generalComments: GeneralCommentsComment[];
-
-    constructor(extensionsUri: vscode.Uri, info: ReviewDetail, items: ReviewItem[], reviewers: Promise<Reviewer[]>) {
+    private username: string;
+    constructor(extensionsUri: vscode.Uri, info: ReviewDetail) {
         this._panel = vscode.window.createWebviewPanel(info.permaId.id, info.permaId.id, vscode.ViewColumn.One, {
             enableScripts: true
         });
+
+        this.username = vscode.workspace.getConfiguration(CONFIGNAME).get<string>(USERNAME)!;
         this.info = info;
-        this.items = items;
         this.generalComments = info.generalComments.comments;
-        this._panel.onDidDispose(this.dispose, null, this._disposables);
+        this._panel.onDidDispose(this.dispose, this, this._disposables);
         this.extensionUri = extensionsUri;
         this._panel.webview.html = this._getWebviewContent();
-        reviewers.then(reviewers => {
-            this.reviewers = reviewers;
-            this._panel.webview.postMessage({msg: "reviewers", data: reviewers, percents: this.calculatePercent()});
+        Promise.all([
+            get<Reviewers>(REVIEW_INFORMATION, info.permaId.id, REVIEWERS),
+            get<ReviewItems>(REVIEW_INFORMATION, info.permaId.id, REVIEW_ITEMS),
+            getGeneralComment(info.permaId.id, true)
+        ]).then(result => {
+            this.reviewers = result[0].reviewer;
+            this.items = result[1].reviewItem;
+            this.generalComments = result[2].comments;
+            this._panel.webview.html = this._getWebviewContent();
+            this._panel.webview.postMessage({msg: "reviewers", data: this.reviewers, percents: this.calculatePercent()});
         });
 
         this._panel.webview.onDidReceiveMessage((message) => {
@@ -40,7 +47,37 @@ export class DescriptionPanel {
                         this._panel.webview.postMessage({msg: "reviewers", data: this.reviewers, percents: this.calculatePercent()});
                     });
                     break;
+                case 'msg':
+                    if (message.type === "error") {
+                        vscode.window.showErrorMessage(message.message);
+                    } else {
+                        vscode.window.showInformationMessage(message.message);
+                    }
+                    break;
+                case 'generalcomment':
+                    this.submitGeneralMessage(message.message, message.isdraft, message.parentid);
+                }
+        });
+    }
+
+    submitGeneralMessage(message: string, isdraft: boolean, parentid?: string) {
+        postComment(this.info.permaId.id, message, isdraft, parentid).then(comment => {
+            this.updateComment(comment);
+            this._panel.webview.html = this._getWebviewContent();
+            this._panel.webview.postMessage({msg: "reviewers", data: this.reviewers, percents: this.calculatePercent()});
+        });
+    }
+
+    updateComment(comment: GeneralCommentsComment) {
+        const update = function(parent: GeneralCommentsComment, comment: GeneralCommentsComment) {
+            if (parent.permaId.id === comment.parentCommentId.id) {
+                parent.replies.push(comment);
+            } else {
+                parent.replies.forEach(reply => update(reply, comment));
             }
+        };
+        this.generalComments.forEach(c => {
+            update(c, comment);
         });
     }
 
@@ -92,25 +129,40 @@ export class DescriptionPanel {
                     <div class="grid-item"><h2>General Comments</h2></div>
                     <div class="grid-item">
                         <div id="general-comments-container" class="comment-list">
-                            ${this.getUserComments(this.generalComments[0])}
+                            ${this.getUserComment()}
+                            <div id="commentplaceholder" class="comment-form-placeholder comment-container">
+                                <form class="comment aui" accept-charset="UTF-8" action="">
+                                    <p class="userlogo">
+                                        <span class="aui-avatar aui-avatar-32">
+                                            <span class="aui-avatar-inner">
+                                                <img src="${avatarUrl(this.username)}">
+                                            </span>
+                                        </span>
+                                    </p>
+                                    <div class="comment-body">
+                                        <vscode-text-area cols="300" rows="3" placeholder="What do you want to say?">
+                                        </vscode-text-area>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div id="replyform" class="commentForm" style="display: none;">
-                    <form id="replyCommentForm" name="replyCommentForm" class="comment aui" accept-charset="UTF-8" action="">
+                    <form id="replyCommentForm" name="replyCommentForm" class="comment aui" accept-charset="UTF-8" action="javascript:completeAndRedirect()">
                         <p class="userlogo">
                             <span class="aui-avatar aui-avatar-32">
                                 <span class="aui-avatar-inner">
-                                    <img src="http://crucible-1-act:8060/avatar/minh.thai?s=32">
+                                    <img src="${avatarUrl(this.username)}">
                                 </span>
                             </span>
                         </p>
                         <div class="comment-body">
-                            <vscode-text-area cols="300" rows="6" name="newText" class="commentTextarea"></vscode-text-area>
+                            <vscode-text-area id="inputComment" name="comments" cols="300" rows="6" class="commentTextarea"></vscode-text-area>
                             <div class="comment-toolbar-holder aui">
                                 <div class="buttons">
-                                    <vscode-button type="button" value="publish">Comment</vscode-button>
-                                    <vscode-button name="saveAsDraft" type="button" value="Save">Save as draft</vscode-button>
+                                    <vscode-button id="submitComment" type="button" value="publish">Comment</vscode-button>
+                                    <vscode-button id="saveDraftComment" name="saveAsDraft" type="button" value="Save">Save as draft</vscode-button>
                                     <vscode-button id="cancelBtn" name="cancelComment" tabindex="0" appearance="secondary">Cancel</vscode-button>
                                     <vscode-button name="discardComment" style="display:none;" tabindex="0" appearance="secondary">Discard</a>
                                 </div>
@@ -124,6 +176,18 @@ export class DescriptionPanel {
             </body>
           </html>
         `;
+    }
+
+    getUserComment() {
+        if (!this.generalComments || this.generalComments.length === 0) {
+            return "";
+        }
+
+        let result: string = "";
+        this.generalComments.forEach(comment => {
+            result += this.getUserComments(comment) + "\n";
+        });
+        return result;
     }
 
     getObjectives() {
@@ -251,8 +315,11 @@ export class DescriptionPanel {
     private getUserComments(comment: GeneralCommentsComment) {
         var childs: string = "";
         if (comment.replies && comment.replies.length > 0) {
-            childs = this.getUserComments(comment.replies[0]);
+            comment.replies.forEach(reply => {
+                childs += this.getUserComments(reply) + "\n";
+            });
         }
+
         return `<div id="" class="comment-container">
         <div id="" class="comment read current_comment" title="">
             <p class="userlogo">
@@ -269,7 +336,7 @@ export class DescriptionPanel {
             <span class="excerpt">LGTM<span class="reply-count" title="click to show"></span></span>
             <div class="comment-body">
                 <div class="comment-content markup">
-                    <p>${comment.messageAsHtml}</p>
+                    ${comment.messageAsHtml}
                 </div>
                 <div class="comment-actions">
                     <ul class="comment-actions-secondary"></ul>
