@@ -170,7 +170,7 @@ export interface VersionedComments {
 }
 
 export interface VersionedCommentsComment {
-    metrics:        Metrics;
+    metrics:        string;
     message:        string;
     draft:          boolean;
     deleted:        boolean;
@@ -178,12 +178,12 @@ export interface VersionedCommentsComment {
     defectApproved: boolean;
     readStatus:     ReadStatus;
     user:           User;
-    createDate:     number;
-    permaId:        string;
-    replies:        Reply[];
+    createDate:     string;
+    permaId:        ID;
+    replies:        GeneralCommentsComment[];
     messageAsHtml:  string;
     reviewItemId:   ID;
-    toLineRange:    string;
+    toLineRange?:    string;
     lineRanges:     LineRange[];
     fromLineRange?: string;
 }

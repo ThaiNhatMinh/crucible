@@ -3,6 +3,7 @@ import { CONFIGNAME, HOSTNAME, PORT, TOKEN } from './ConfigPath';
 import got from 'got';
 import { COMMENTS, GENERAL_COMMENTS, REVIEW_INFORMATION, TRANSITION, Transition } from './ApiPath';
 import { GeneralComments, GeneralCommentsComment, ReviewData } from './Structure';
+import { log } from './Log';
 
 export function url(...paths: string[]): string
 {
@@ -104,4 +105,23 @@ export function postComment(id: string, msg: string, isdraft: boolean, parentcom
         }
     }).json<GeneralCommentsComment>();
 
+}
+
+export function fileReaded(id: string, fileid: string): Promise<string> {
+    var uri = url(`json/cru/${id}/fileReadStatusAjax`);
+    const token = vscode.workspace.getConfiguration(CONFIGNAME).get<string>(TOKEN);
+    log("[REST]", "Post file readed status:", id, fileid, "uri:", uri);
+    return got.post(uri, {
+        headers: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'Content-Type': 'application/json',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'Accept': 'application/json',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            "X-Atlassian-Token": "no-check",
+        },
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        searchParams: { FEAUTH: token},
+        form: {frxId: fileid, markAsRead: true}
+    }).text();
 }

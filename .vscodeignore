@@ -2,6 +2,9 @@
 .vscode-test/**
 out/**
 node_modules/**
+!node_modules/@vscode/webview-ui-toolkit/dist/toolkit.js
+!src/views/css
+!src/views/js
 src/**
 .gitignore
 .yarnrc

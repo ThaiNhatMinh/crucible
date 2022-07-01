@@ -15,7 +15,12 @@ export class RevisionSelectorManager {
         // TODO: Check index === -1
         const left = this.db[id].revisions[index].left;
         const right = this.db[id].revisions[index].right;
-        const fromUrl = item.expandedRevisions.find(rev => rev.revision === left)!.contentUrl;
+        var fromUrl = "";
+        if (item.commitType === 'Added') {
+            fromUrl = "";
+        } else {
+            fromUrl = item.expandedRevisions.find(rev => rev.revision === left)!.contentUrl;
+        }
         const toUrl = item.expandedRevisions.find(rev => rev.revision === right)!.contentUrl;
         return {
             left: left,

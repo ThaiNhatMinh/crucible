@@ -53,7 +53,6 @@ function abandonReview() {
     vscode.postMessage({command: 'transition', transition: "abandon"});
 }
 
-
 function reopenReview() {
     vscode.postMessage({command: 'transition', transition: "reopen"});
 
@@ -61,6 +60,10 @@ function reopenReview() {
 
 function recoverReview() {
     vscode.postMessage({command: 'transition', transition: "recover"});
+}
+
+function completeReview() {
+    vscode.postMessage({command: 'transition', transition: "complete"});
 }
 
 function main() {
@@ -77,10 +80,14 @@ function main() {
     if (reopenReviewButton) {
         reopenReviewButton.addEventListener("click", () => reopenReview());
     }
+
     const recoverReviewButton = document.getElementById("recoverReviewButton");
     if (recoverReviewButton) {
         recoverReviewButton.addEventListener("click", () => recoverReview());
     }
+
+    document.getElementById("completeReviewButton").addEventListener("click", () => completeReview());
+
     generalcommentcontainer = document.getElementById('general-comments-container');
     commentplaceholder = document.getElementById("commentplaceholder");
     commentplaceholder.addEventListener('click', () => {

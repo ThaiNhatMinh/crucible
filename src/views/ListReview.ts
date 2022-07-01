@@ -1,9 +1,13 @@
 import * as vscode from "vscode";
-import { CONFIGNAME, VIEWMODE } from '../crucible/ConfigPath';
-import { FileStat } from "../crucible/FileDecoration";
+import { ABANDONED_REVIEW, CLOSED_REVIEW, COMPLETED_REVIEW, DRAFTS_REVIEW, OUT_FOR_REVIEW, READY_TO_CLOSE, TO_REVIEW, Transition } from "../crucible/ApiPath";
+import { CommentController } from "../crucible/Comments";
+import { CONFIGNAME, USERNAME, VIEWMODE } from '../crucible/ConfigPath';
+import { FileStat, ViewedDecorationProvider } from "../crucible/FileDecoration";
+import { log } from "../crucible/Log";
+import { fileReaded } from "../crucible/Rest";
 import { getListReviewers, getListReviews, getReview, getReviewItems } from "../crucible/Review";
 import { RevisionSelectorManager } from "../crucible/RevisionSelectorManager";
-import { ReviewData, ReviewDetail, Reviewer, ReviewItem } from "../crucible/Structure";
+import { ReviewData, ReviewDetail, Reviewer, ReviewItem, VersionedCommentsComment } from "../crucible/Structure";
 import { DescriptionPanel } from "./Description";
 import { Revisions } from "./Revisions";
 
@@ -27,35 +31,151 @@ interface Description
 
 type Entry = ReviewData | TreeEntry | Description;
 const revisionSelectorManager: RevisionSelectorManager = new RevisionSelectorManager();
+var controller: CommentController;
+
+var refreshView: { [id: string]: ListReview[]} = {};
+
+function registerView(context: vscode.ExtensionContext) {
+
+    const toReview = new ListReview(TO_REVIEW);
+    vscode.commands.registerCommand('crucible.toreview.refresh', () => {
+        toReview.refresh();
+    });
+    context.subscriptions.push(
+        vscode.window.createTreeView("crucible.toreview", {
+            treeDataProvider: toReview,
+        })
+    );
+
+    const ready = new ListReview(READY_TO_CLOSE);
+    vscode.commands.registerCommand('crucible.ready.refresh', () => {
+        ready.refresh();
+    });
+    context.subscriptions.push(
+        vscode.window.createTreeView("crucible.ready", {
+            treeDataProvider: ready,
+        })
+    );
+    const indraft = new ListReview(DRAFTS_REVIEW);
+    vscode.commands.registerCommand('crucible.indraft.refresh', () => {
+        indraft.refresh();
+    });
+    context.subscriptions.push(
+        vscode.window.createTreeView("crucible.indraft", {
+            treeDataProvider: indraft,
+        })
+    );
+
+    const outForReview = new ListReview(OUT_FOR_REVIEW);
+    vscode.commands.registerCommand('crucible.outforreview.refresh', () => {
+        outForReview.refresh();
+    });
+    context.subscriptions.push(
+        vscode.window.createTreeView("crucible.outforreview", {
+            treeDataProvider: outForReview,
+        })
+    );
+    const completed = new ListReview(COMPLETED_REVIEW);
+    vscode.commands.registerCommand('crucible.completed.refresh', () => {
+        completed.refresh();
+    });
+    context.subscriptions.push(
+        vscode.window.createTreeView("crucible.completed", {
+            treeDataProvider: completed,
+        })
+    );
+    const closed = new ListReview(CLOSED_REVIEW);
+    vscode.commands.registerCommand('crucible.closed.refresh', () => {
+        closed.refresh();
+    });
+    context.subscriptions.push(
+        vscode.window.createTreeView("crucible.closed", {
+            treeDataProvider: closed,
+        })
+    );
+    const abandoned = new ListReview(ABANDONED_REVIEW);
+    vscode.commands.registerCommand('crucible.abandoned.refresh', () => {
+        abandoned.refresh();
+    });
+    context.subscriptions.push(
+        vscode.window.createTreeView("crucible.abandoned", {
+            treeDataProvider: abandoned,
+        })
+    );
+
+    refreshView["abandoned"] = [abandoned, outForReview];
+    refreshView["close"] = [closed, outForReview];
+    refreshView["complete"] = [completed, toReview];
+    refreshView["reopen"] = [ready, closed];
+    refreshView["recover"] = [indraft, abandoned];
+}
+
+export function refreshTreeView(tran: string) {
+    refreshView[tran].forEach(view => view.refresh());
+}
 
 export function registerCommand(context: vscode.ExtensionContext) {
+    registerView(context);
+    controller = new CommentController(context);
+    const viewedDecord = new ViewedDecorationProvider();
+    context.subscriptions.push(vscode.window.registerFileDecorationProvider(viewedDecord));
+
     context.subscriptions.push(vscode.commands.registerCommand('crucible.opendescription', (info: ReviewDetail) => {
         context.subscriptions.push(new DescriptionPanel(context.extensionUri, info));
     }));
     const revisionsSelector = new Revisions(context.extensionUri);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(Revisions.viewType, revisionsSelector));
 
-    context.subscriptions.push(vscode.commands.registerCommand('crucible.diff', (entry: ReviewData, item: ReviewItem) => {
+    context.subscriptions.push(vscode.commands.registerCommand('crucible.diff', (entry: ReviewDetail, item: ReviewItem) => {
         const revisions = revisionSelectorManager.getRevisions(entry, item);
         var title;
-        if (item.commitType === "Added") {
+        if (item.commitType === 'Added') {
             title = `Added ${item.toPath}`;
         } else if (item.commitType === "Modified") {
             title = `${item.fromPath} ⟷ ${item.toPath}`;
         } else if (item.commitType === "Deleted" || item.commitType === "Moved") {
             title = `${item.commitType} ${item.toPath}`;
         } else {
-            
+            throw new Error('Method not implemented.');
         }
-        vscode.commands.executeCommand("vscode.diff",
-        vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: revisions.fromContentUrl }),
-        vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: revisions.toContentUrl }),
-        title).then(() => {
-            vscode.commands.executeCommand('setContext', 'crucible.diffopen', true).then(() => {
-                revisionsSelector.setData(entry, item, revisions.left, revisions.right);
+        const username = vscode.workspace.getConfiguration(CONFIGNAME).get<string>(USERNAME)!;
+        for(const p of item.participants) {
+            if (p.user.userName === username) {
+                p.completed = true;
+                break;
+            }
+        }
+        const left = vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: revisions.fromContentUrl });
+        const right = vscode.Uri.from({ scheme: CONFIGNAME, path: '/' + item.toPath, query: revisions.toContentUrl });
+        viewedDecord.fileRead([ vscode.Uri.from({scheme: CONFIGNAME, path: '/' + item.toPath, query: item.toContentUrl,
+            fragment: JSON.stringify(getFileStat(entry, item))})]);
+        vscode.commands.executeCommand("vscode.diff", left, right, title).then(() => {
+                vscode.commands.executeCommand('setContext', 'crucible.diffopen', true).then(() => {
+                    revisionsSelector.setData(entry, item, revisions.left, revisions.right);
+                });
+                fileReaded(entry.permaId.id, item.permId.id.split('-')[1]).catch(reason => {
+                    log("Failed to send file read status:", reason);
+                });
             });
-
-        });
+        const createForOneSine = function(revision: string, uri: vscode.Uri) {
+            const comments: VersionedCommentsComment[] = [];
+            entry.versionedComments.comments.forEach(comment => {
+                if (comment.reviewItemId.id !== item.permId.id) {
+                    return;
+                }
+                if (comment.lineRanges) {
+                    const rang = comment.lineRanges.find((value) => value.revision === revision);
+                    if (!rang) {
+                        return;
+                    }
+                    comment.lineRanges[0] = rang;
+                }
+                comments.push(comment);
+            });
+            controller.createThread(uri, comments);
+        };
+        createForOneSine(revisions.left, left);
+        createForOneSine(revisions.right, right);
     }));
 
     revisionsSelector.onRevisionsSelected(event => {
@@ -65,6 +185,36 @@ export function registerCommand(context: vscode.ExtensionContext) {
             revisionSelectorManager.setRightRevision(event.id, event.revision);
         }
     });
+
+}
+
+function getFileStat(info: ReviewDetail, item: ReviewItem): FileStat {
+    const username = vscode.workspace.getConfiguration(CONFIGNAME).get<string>(USERNAME)!;
+    var isComment: boolean = false;
+    var rev: string | undefined;
+    info.versionedComments.comments.forEach(comment => {
+        // TODO: Check current revision selected
+        if (comment.reviewItemId.id === item.permId.id) {
+            isComment = true;
+            rev = item.toRevision;
+        }
+    });
+    var readed: boolean = false;
+    for(const p of item.participants) {
+        if (p.user.userName === username && p.completed) {
+            readed = true;
+            break;
+        }
+    }
+
+    var stat: FileStat = {
+        commitType: item.commitType,
+        // TODO: Check if user in participant list
+        viewed: readed,
+        comments: isComment,
+        revision: rev
+    };
+    return stat;
 }
 
 class ReviewMainItem extends vscode.TreeItem {
@@ -94,20 +244,8 @@ class RootTree extends vscode.TreeItem {
                 super(vscode.Uri.parse(entry.name), vscode.TreeItemCollapsibleState.Expanded);
                 this.iconPath = new vscode.ThemeIcon("file-directory");
             } else {
-                var isComment: boolean = false;
-                entry.info?.versionedComments.comments.forEach(comment => {
-                    // TODO: Check current revision selected
-                    if (comment.reviewItemId.id === entry.item?.permId.id) {
-                        isComment = true;
-                    }
-                });
-                var stat: FileStat = {
-                    commitType: entry.item?.commitType!,
-                    // TODO: Check if user in participant list
-                    viewed: false,
-                    comments: isComment
-                };
-                const uri = vscode.Uri.from({scheme: CONFIGNAME, path: '/' + entry.item!.toPath, query: entry.item!.toContentUrl, fragment: JSON.stringify(stat)});
+                const uri = vscode.Uri.from({scheme: CONFIGNAME, path: '/' + entry.item!.toPath, query: entry.item!.toContentUrl,
+                        fragment: JSON.stringify(getFileStat(entry.info!, entry.item!))});
                 super(uri, vscode.TreeItemCollapsibleState.None);
                 // TODO: File status ADD/MODIFY/DELETE
                 this.iconPath = new vscode.ThemeIcon("file");
@@ -121,6 +259,8 @@ class RootTree extends vscode.TreeItem {
 
 async function createMainEntry(entry: ReviewData): Promise<Entry[]> {
     const mode = vscode.workspace.getConfiguration(CONFIGNAME).get<string>(VIEWMODE);
+    log("Create review items with mode: ", mode);
+
     return getReview(entry.permaId.id).then(detail => {
         const items = detail.reviewItems.reviewItem;
         revisionSelectorManager.set(entry, items);
@@ -149,12 +289,9 @@ async function createMainEntry(entry: ReviewData): Promise<Entry[]> {
                     childs: [],
                     item: item,
                     info: detail,
-                    // toUri: vscode.Uri.from({scheme: CONFIGNAME, path: '/' + item.toPath, query: item.toContentUrl}),
-                    // fromUri: vscode.Uri.from({scheme: CONFIGNAME, path: '/' + item.fromPath, query: item.fromContentUrl}),
                     root: false,
                     type: vscode.FileType.File
                 };
-                result.push(e);
             });
         }
         return result;
@@ -171,8 +308,6 @@ function createTree(entry: ReviewDetail, item: ReviewItem, root: TreeEntry) {
             const e : TreeEntry = {
                 name: p,
                 childs: [],
-                // toUri: vscode.Uri.from({scheme: CONFIGNAME, path: '/' + paths.slice(0, index + 1).join('/'), query: item.toContentUrl}),
-                // fromUri: vscode.Uri.from({scheme: CONFIGNAME, path: '/' + paths.slice(0, index + 1).join('/'), query: item.fromContentUrl}),
                 type: index !== paths.length - 1 ? vscode.FileType.Directory : vscode.FileType.File,
                 root: false
             };

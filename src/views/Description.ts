@@ -3,6 +3,7 @@ import { REVIEWERS, REVIEW_INFORMATION, REVIEW_ITEMS, Transition } from "../cruc
 import { CONFIGNAME, USERNAME } from "../crucible/ConfigPath";
 import { get, postComment, transition, avatarUrl, getGeneralComment } from "../crucible/Rest";
 import { GeneralCommentsComment, ReviewData, ReviewDetail, Reviewer, Reviewers, ReviewItem, ReviewItems } from "../crucible/Structure";
+import { refreshTreeView } from "./ListReview";
 import { getUri } from "./utilities";
 
 export class DescriptionPanel {
@@ -45,6 +46,7 @@ export class DescriptionPanel {
                         this.info = res;
                         this._panel.webview.html = this._getWebviewContent();
                         this._panel.webview.postMessage({msg: "reviewers", data: this.reviewers, percents: this.calculatePercent()});
+                        refreshTreeView(trans);
                     });
                     break;
                 case 'msg':
@@ -216,13 +218,20 @@ export class DescriptionPanel {
     }
 
     private getButtons() {
+        const startReviewButton = '<vscode-button style="margin:5px;" id="startReviewButton">Start Review</vscode-button>';
+        const uncompleteReviewButton = '<vscode-button style="margin:5px;" id="uncompleteReviewButton">Uncomplete</vscode-button>';
         const closeButton = '<vscode-button style="margin:5px;" id="closeReviewButton">Close</vscode-button>';
         const abandonButton = '<vscode-button style="margin:5px;" id="abandonReviewButton">Abandon</vscode-button>';
         const reopenButton = '<vscode-button style="margin:5px;" id="reopenReviewButton">Reopen</vscode-button>';
         const recoverButton = '<vscode-button style="margin:5px;" id="recoverReviewButton">Recover</vscode-button>';
-        let result = "";
+        const completeButton = '<vscode-button style="margin:5px;" id="completeReviewButton">Complete</vscode-button>';
+        let result = `<vscode-button style="margin:5px;" id="">${this.info.state}</vscode-button>`;
         if (this.info.state === "Review") {
-            result = closeButton + abandonButton;
+            if (this.username === this.info.author.userName) {
+                result = closeButton + abandonButton;
+            } else {
+                result = closeButton + completeButton;
+            }
         } else if (this.info.state === "Closed") {
             result = reopenButton;
         } else if (this.info.state === "Dead") {
@@ -333,7 +342,7 @@ export class DescriptionPanel {
             <h4 class="author">
                 <a class="user  userorcommitter-parent" title=""><span>${comment.user.displayName}</span></a>
             </h4>
-            <span class="excerpt">LGTM<span class="reply-count" title="click to show"></span></span>
+            <span class="excerpt"><span class="reply-count" title="click to show"></span></span>
             <div class="comment-body">
                 <div class="comment-content markup">
                     ${comment.messageAsHtml}
@@ -376,12 +385,12 @@ export class DescriptionPanel {
                 </div>
             </div>
         </div>
-        <div id="generalcommentEdit110499" class="comment-edit-form" style="display: none"></div>
+        <div id="generalcommentEdit_${comment.permId.id}" class="comment-edit-form" style="display: none"></div>
         <div id="generalreplyFormDiv_${comment.permId.id}" class="replyCommentForm" style="display: none;">
 
         </div>
         <!--Replys-->
-        <div id="generalreplys110499" class="reply-container">
+        <div id="generalreplys_${comment.permId.id}" class="reply-container">
             ${childs}
         </div>
         </div>`;

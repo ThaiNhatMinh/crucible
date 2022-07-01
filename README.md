@@ -1,6 +1,6 @@
 # crucible README
 
-This is the README for your extension "crucible". After writing up a brief description, we recommend including the following sections.
+Just review extension
 
 ## Features
 

@@ -2,11 +2,12 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { login } from './crucible/Authentication';
-import { TO_REVIEW, OPENED_REVIEW } from "./crucible/ApiPath";
+import { TO_REVIEW, OPENED_REVIEW, READY_TO_CLOSE, DRAFTS_REVIEW, OUT_FOR_REVIEW, COMPLETED_REVIEW, ABANDONED_REVIEW } from "./crucible/ApiPath";
 import { ListReview, registerCommand } from "./views/ListReview";
 import { CrucibleFileSystemProvider } from './crucible/FileSystemProvider';
 import { CONFIGNAME } from './crucible/ConfigPath';
-import { CommentDecorationProvider, FileDecorationProvider } from './crucible/FileDecoration';
+import { CommentDecorationProvider, FileDecorationProvider, ViewedDecorationProvider } from './crucible/FileDecoration';
+import { CommentController } from './crucible/Comments';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -18,30 +19,9 @@ export async function activate(context: vscode.ExtensionContext) {
         await login();
     }));
 
-    registerCommand(context);
-    const outcomeReview = new ListReview(OPENED_REVIEW);
-    const incomeReview = new ListReview(TO_REVIEW);
-    vscode.commands.registerCommand('crucible.income.refresh', () => {
-        incomeReview.refresh();
-    });
-    vscode.commands.registerCommand('crucible.outcome.refresh', () => {
-        outcomeReview.refresh();
-    });
-
-    context.subscriptions.push(
-        vscode.window.createTreeView("crucible.outcome", {
-            treeDataProvider: outcomeReview,
-        })
-    );
-    context.subscriptions.push(
-        vscode.window.createTreeView("crucible.income", {
-            treeDataProvider: incomeReview,
-        })
-    );
-
     context.subscriptions.push(vscode.window.registerFileDecorationProvider(new FileDecorationProvider()));
     context.subscriptions.push(vscode.window.registerFileDecorationProvider(new CommentDecorationProvider()));
-
+    registerCommand(context);
 }
 
 // this method is called when your extension is deactivated

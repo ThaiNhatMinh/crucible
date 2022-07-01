@@ -3,7 +3,8 @@ import * as vscode from 'vscode';
 export interface FileStat {
     viewed: boolean,
     commitType: string,
-	comments: boolean
+	comments: boolean,
+	revision?: string
 }
 
 
@@ -84,9 +85,36 @@ export class CommentDecorationProvider implements vscode.FileDecorationProvider 
 		if (stat.comments) {
 			return {
 				propagate: false,
-				tooltip: 'Commented',
+				tooltip: stat.revision !== undefined ? "Commented" : `Commented on revision ${stat.revision}`,
 				badge: '💬',
 			};
+		}
+	}
+
+}
+
+export class ViewedDecorationProvider implements vscode.FileDecorationProvider {
+    private _emitter = new vscode.EventEmitter<vscode.Uri | vscode.Uri[] | undefined>();
+	onDidChangeFileDecorations?: vscode.Event<vscode.Uri | vscode.Uri[] | undefined> | undefined = this._emitter.event;
+
+	public fileRead(uris: vscode.Uri[]) {
+        this._emitter.fire(uris);
+	}
+
+	provideFileDecoration(uri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<vscode.FileDecoration> {
+		if (uri.scheme !== "crucible" || !uri.fragment) {
+            return null;
+        }
+
+        const stat = parseStat(uri.fragment);
+		if (stat.viewed) {
+			return {
+				propagate: false,
+				tooltip: "Readed",
+				badge: '👀',
+			};
+		} else {
+			return undefined;
 		}
 	}
 

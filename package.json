@@ -13,6 +13,9 @@
 		"*",
 		"onFileSystem:crucible"
 	],
+	"repository": {
+		"url": "https://github.com/ThaiNhatMinh/crucible"
+	},
 	"main": "./dist/extension.js",
 	"contributes": {
 		"configuration": [
@@ -59,16 +62,52 @@
 		],
 		"commands": [
 			{
+				"command": "crucible.reply",
+				"title": "Reply",
+				"enablement": "!commentIsEmpty",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "crucible.markforreply",
+				"title": "Mark comment for reply",
+				"icon": "$(pencil)"
+			},
+			{
 				"command": "crucible.login",
 				"title": "Login to Crucible"
 			},
 			{
-				"command": "crucible.outcome.refresh",
+				"command": "crucible.toreview.refresh",
 				"title": "Refresh",
 				"icon": "$(refresh)"
 			},
 			{
-				"command": "crucible.income.refresh",
+				"command": "crucible.ready.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "crucible.indraft.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "crucible.outforreview.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "crucible.completed.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "crucible.closed.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "crucible.abandoned.refresh",
 				"title": "Refresh",
 				"icon": "$(refresh)"
 			},
@@ -79,7 +118,7 @@
 			{
 				"command": "crucible.diff",
 				"title": "Diff",
-				"enablement": "view == crucible.outcome || view == crucible.income || view == crucible.revisions"
+				"enablement": "view =~ /.^crucible.*/ || view == crucible.revisions"
 			}
 		],
 		"viewsContainers": {
@@ -94,12 +133,32 @@
 		"views": {
 			"crucible": [
 				{
-					"id": "crucible.outcome",
-					"name": "Outcome review"
+					"id": "crucible.toreview",
+					"name": "To Review"
 				},
 				{
-					"id": "crucible.income",
-					"name": "Incomming review"
+					"id": "crucible.ready",
+					"name": "Ready to Close"
+				},
+				{
+					"id": "crucible.indraft",
+					"name": "In Draft"
+				},
+				{
+					"id": "crucible.outforreview",
+					"name": "Out for Review"
+				},
+				{
+					"id": "crucible.completed",
+					"name": "Completed"
+				},
+				{
+					"id": "crucible.closed",
+					"name": "Closed"
+				},
+				{
+					"id": "crucible.abandoned",
+					"name": "Abandoned"
 				},
 				{
 					"type": "webview",
@@ -112,14 +171,51 @@
 		"menus": {
 			"view/title": [
 				{
-					"command": "crucible.outcome.refresh",
-					"when": "view == crucible.outcome",
+					"command": "crucible.toreview.refresh",
+					"when": "view == crucible.toreview",
 					"group": "navigation"
 				},
 				{
-					"command": "crucible.income.refresh",
-					"when": "view == crucible.income",
+					"command": "crucible.ready.refresh",
+					"when": "view == crucible.ready",
 					"group": "navigation"
+				},
+				{
+					"command": "crucible.indraft.refresh",
+					"when": "view == crucible.indraft",
+					"group": "navigation"
+				},
+				{
+					"command": "crucible.outforreview.refresh",
+					"when": "view == crucible.outforreview",
+					"group": "navigation"
+				},
+				{
+					"command": "crucible.completed.refresh",
+					"when": "view == crucible.completed",
+					"group": "navigation"
+				},
+				{
+					"command": "crucible.closed.refresh",
+					"when": "view == crucible.closed",
+					"group": "navigation"
+				},
+				{
+					"command": "crucible.abandoned.refresh",
+					"when": "view == crucible.abandoned",
+					"group": "navigation"
+				}
+			],
+			"comments/comment/title": [
+				{
+					"group": "inline",
+					"command": "crucible.markforreply"
+				}
+			],
+			"comments/commentThread/context": [
+				{
+					"command": "crucible.reply",
+					"group": "inline"
 				}
 			]
 		}
@@ -133,7 +229,8 @@
 		"watch-tests": "tsc -p . -w --outDir out",
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
+		"test": "node ./out/test/runTest.js",
+		"webpack": "webpack --mode development"
 	},
 	"dependencies": {
 		"@vscode/webview-ui-toolkit": "^1.0.0",
@@ -147,12 +244,15 @@
 		"@typescript-eslint/eslint-plugin": "^5.16.0",
 		"@typescript-eslint/parser": "^5.16.0",
 		"@vscode/test-electron": "^2.1.3",
+		"css-loader": "^6.7.1",
+		"esbuild": "^0.14.48",
 		"eslint": "^8.11.0",
 		"glob": "^7.2.0",
 		"mocha": "^9.2.2",
-		"ts-loader": "^9.2.8",
+		"style-loader": "^3.3.1",
+		"ts-loader": "^9.3.1",
 		"typescript": "^4.5.5",
-		"webpack": "^5.70.0",
-		"webpack-cli": "^4.9.2"
+		"webpack": "^5.73.0",
+		"webpack-cli": "^4.10.0"
 	}
 }
