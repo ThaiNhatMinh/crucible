@@ -234,6 +234,7 @@
 	},
 	"dependencies": {
 		"@vscode/webview-ui-toolkit": "^1.0.0",
+		"react": "16.9.0",
 		"got": "^12.3.0"
 	},
 	"devDependencies": {

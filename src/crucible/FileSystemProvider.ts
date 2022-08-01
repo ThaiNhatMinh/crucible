@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { CACHE_LOCATION, CONFIGNAME } from './ConfigPath';
 import { log } from './Log';
 import { getRaw } from './Rest';
+import { mkdirSync, writeFile, writeFileSync } from 'fs'
 
 /**
  * ${CACHE_LOCATION}/${permaId}/${changenumber}/${path}
@@ -73,8 +74,10 @@ export class CrucibleFileSystemProvider implements vscode.FileSystemProvider {
     }
 
     private saveCache(uri: vscode.Uri, content: Uint8Array) {
-        log("[FS][CACHE]", "Save cache:", uri);
-        const localUri = vscode.Uri.parse(path.resolve(this.cacheLocation!, uri.query.substring(1)));
-        this.fs.writeFile(localUri, content);
+        const fullpath = path.resolve(this.cacheLocation!, uri.query.substring(1));
+        log("[FS][CACHE]", "Save cache:", fullpath);
+        const dirname = path.dirname(fullpath);
+        mkdirSync(dirname, {recursive: true});
+        writeFileSync(fullpath, content.toString(), { encoding: "utf8" });
     }
 };

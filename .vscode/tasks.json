@@ -38,6 +38,18 @@
 				"npm: watch-tests"
 			],
 			"problemMatcher": []
+		},
+		{
+			"type": "npm",
+			"script": "vscode:prepublish",
+			"problemMatcher": [],
+			"label": "npm: vscode:prepublish",
+			"detail": "npm run package"
+		},
+		{
+			"label": "Package extensions",
+			"type": "shell",
+			"command": "vsce package"
 		}
 	]
 }
