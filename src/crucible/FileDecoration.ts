@@ -13,6 +13,50 @@ function parseStat(fragment: string) : FileStat {
 }
 
 
+function color(status: FileStat): vscode.ThemeColor | undefined {
+	let color: string | undefined;
+	switch (status.commitType) {
+		case "Modified":
+			color = 'gitDecoration.modifiedResourceForeground';
+			break;
+		case "Added":
+			color = 'gitDecoration.addedResourceForeground';
+			break;
+		case "Deleted":
+			color = 'gitDecoration.deletedResourceForeground';
+			break;
+		case "Moved":
+			color = 'gitDecoration.renamedResourceForeground';
+			break;
+		case "Unknown":
+			color = undefined;
+			break;
+		case "Copied":
+			color = 'gitDecoration.conflictingResourceForeground';
+			break;
+	}
+	return color ? new vscode.ThemeColor(color) : undefined;
+}
+
+function letter(status: FileStat): string {
+	switch (status.commitType) {
+		case "Modified":
+			return 'M';
+		case "Added":
+			return 'A';
+		case "Deleted":
+			return 'D';
+		case "Moved":
+			return 'M';
+		case "Unknown":
+			return '?';
+		case "Copied":
+			return 'C';
+	}
+
+	return '';
+}
+
 export class FileDecorationProvider implements vscode.FileDecorationProvider {
     onDidChangeFileDecorations?: vscode.Event<vscode.Uri | vscode.Uri[] | undefined> | undefined;
     provideFileDecoration(uri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<vscode.FileDecoration> {
@@ -22,55 +66,11 @@ export class FileDecorationProvider implements vscode.FileDecorationProvider {
 
         const stat = parseStat(uri.fragment);
         return {
-            color: this.color(stat),
-            badge: this.letter(stat),
+            color: color(stat),
+            badge: letter(stat),
             propagate: true
         };
     }
-
-    color(status: FileStat): vscode.ThemeColor | undefined {
-		let color: string | undefined;
-		switch (status.commitType) {
-			case "Modified":
-				color = 'gitDecoration.modifiedResourceForeground';
-				break;
-			case "Added":
-				color = 'gitDecoration.addedResourceForeground';
-				break;
-			case "Deleted":
-				color = 'gitDecoration.deletedResourceForeground';
-				break;
-			case "Moved":
-				color = 'gitDecoration.renamedResourceForeground';
-				break;
-			case "Unknown":
-				color = undefined;
-				break;
-			case "Copied":
-				color = 'gitDecoration.conflictingResourceForeground';
-				break;
-		}
-		return color ? new vscode.ThemeColor(color) : undefined;
-	}
-
-	letter(status: FileStat): string {
-		switch (status.commitType) {
-			case "Modified":
-                return 'M';
-			case "Added":
-                return 'A';
-			case "Deleted":
-                return 'D';
-			case "Moved":
-                return 'M';
-			case "Unknown":
-                return '?';
-			case "Copied":
-                return 'C';
-		}
-
-		return '';
-	}
 
 }
 
@@ -85,7 +85,7 @@ export class CommentDecorationProvider implements vscode.FileDecorationProvider 
 		if (stat.comments) {
 			return {
 				propagate: false,
-				tooltip: stat.revision !== undefined ? "Commented" : `Commented on revision ${stat.revision}`,
+				tooltip: stat.revision !== undefined ? "Has comments" : `Comments on revision ${stat.revision}`,
 				badge: '💬',
 			};
 		}
@@ -112,6 +112,7 @@ export class ViewedDecorationProvider implements vscode.FileDecorationProvider {
 				propagate: false,
 				tooltip: "Readed",
 				badge: '👀',
+				color: color(stat),
 			};
 		} else {
 			return undefined;
